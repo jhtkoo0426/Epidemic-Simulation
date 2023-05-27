@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.5"
+  }
+}
