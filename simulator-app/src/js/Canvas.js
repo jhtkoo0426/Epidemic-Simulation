@@ -6,32 +6,41 @@ class Circle {
     this.y = y;
     this.r = r;
     this.context = context;
-    this.vx = Math.random() - 0.5; // Random velocity in x-axis
-    this.vy = Math.random() - 0.5; // Random velocity in y-axis
+    this.color = 'grey';
+    this.dx = Math.random() * 2 - 1; // Random value between -1 and 1 for x-axis movement
+    this.dy = Math.random() * 2 - 1; // Random value between -1 and 1 for y-axis movement
   }
 
   draw() {
-    const { x, y, r, context } = this;
-    context.beginPath();
-    context.arc(x, y, r, 0, 2 * Math.PI, false);
-    context.fillStyle = 'red';
-    context.fill();
-    context.closePath();
+    this.context.beginPath();
+    this.context.arc(this.x, this.y, this.r, 0, 2 * Math.PI, false);
+    this.context.fillStyle = this.color;
+    this.context.fill();
+    this.context.closePath();
   }
 
   move() {
-    const { x, y, vx, vy, r, context } = this;
+    this.x += this.dx;
+    this.y += this.dy;
 
-    // Update position
-    this.x += vx;
-    this.y += vy;
-
-    // Reverse direction if circle hits canvas boundaries
-    if (x + r >= context.canvas.width || x - r <= 0) {
-      this.vx *= -1;
+    // Check collision with canvas boundaries
+    if (this.x - this.r <= 0 || this.x + this.r >= this.context.canvas.width) {
+      this.dx *= -1; // Reverse the direction on collision
     }
-    if (y + r >= context.canvas.height || y - r <= 0) {
-      this.vy *= -1;
+    if (this.y - this.r <= 0 || this.y + this.r >= this.context.canvas.height) {
+      this.dy *= -1; // Reverse the direction on collision
+    }
+  }
+
+  checkCollision(otherCircle) {
+    const dx = this.x - otherCircle.x;
+    const dy = this.y - otherCircle.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Check if circles collide
+    if (distance < this.r + otherCircle.r) {
+      this.color = 'red';
+      otherCircle.color = 'red';
     }
   }
 }
@@ -44,11 +53,17 @@ class Canvas extends Component {
     this.context = null;
     this.r = 2;
     this.circles = [];
+    this.animationFrameId = null;
+    this.isAnimating = true;
   }
 
   componentDidMount() {
     this.setupCanvas();
     this.animate();
+  }
+
+  componentWillUnmount() {
+    cancelAnimationFrame(this.animationFrameId);
   }
 
   setupCanvas = () => {
@@ -64,8 +79,23 @@ class Canvas extends Component {
       const circle = this.circles[i];
       circle.draw();
       circle.move();
+      for (let j = i + 1; j < this.circles.length; j++) {
+        const otherCircle = this.circles[j];
+        circle.checkCollision(otherCircle);
+      }
     }
-    requestAnimationFrame(this.animate);
+    if (this.isAnimating) {
+      this.animationFrameId = requestAnimationFrame(this.animate);
+    }
+  };
+
+  toggleAnimation = () => {
+    this.isAnimating = !this.isAnimating;
+    if (this.isAnimating) {
+      this.animate();
+    } else {
+      cancelAnimationFrame(this.animationFrameId);
+    }
   };
 
   drawCircle = () => {
@@ -108,6 +138,9 @@ class Canvas extends Component {
         <div className="control-panel">
           <button onClick={this.drawCircle}>Draw Circles</button>
           <button onClick={this.resetCanvas}>Reset Canvas</button>
+          <button onClick={this.toggleAnimation}>
+            {this.isAnimating ? 'Pause Animation' : 'Play Animation'}
+          </button>
         </div>
       </div>
     );
