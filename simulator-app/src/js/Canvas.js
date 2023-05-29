@@ -1,22 +1,23 @@
 import React, { Component } from 'react';
 
 class Circle {
-  constructor(x, y, r, context) {
+  constructor(x, y, r, canvasWidth, canvasHeight) {
     this.x = x;
     this.y = y;
     this.r = r;
-    this.context = context;
+    this.canvasWidth = canvasWidth;
+    this.canvasHeight = canvasHeight;
     this.color = 'grey';
     this.dx = Math.random() * 2 - 1; // Random value between -1 and 1 for x-axis movement
     this.dy = Math.random() * 2 - 1; // Random value between -1 and 1 for y-axis movement
   }
 
-  draw() {
-    this.context.beginPath();
-    this.context.arc(this.x, this.y, this.r, 0, 2 * Math.PI, false);
-    this.context.fillStyle = this.color;
-    this.context.fill();
-    this.context.closePath();
+  draw(context) {
+    context.beginPath();
+    context.arc(this.x, this.y, this.r, 0, 2 * Math.PI, false);
+    context.fillStyle = this.color;
+    context.fill();
+    context.closePath();
   }
 
   move() {
@@ -24,10 +25,10 @@ class Circle {
     this.y += this.dy;
 
     // Check collision with canvas boundaries
-    if (this.x - this.r <= 0 || this.x + this.r >= this.context.canvas.width) {
+    if (this.x - this.r <= 0 || this.x + this.r >= this.canvasWidth) {
       this.dx *= -1; // Reverse the direction on collision
     }
-    if (this.y - this.r <= 0 || this.y + this.r >= this.context.canvas.height) {
+    if (this.y - this.r <= 0 || this.y + this.r >= this.canvasHeight) {
       this.dy *= -1; // Reverse the direction on collision
     }
   }
@@ -55,6 +56,9 @@ class Canvas extends Component {
     this.circles = [];
     this.animationFrameId = null;
     this.isAnimating = true;
+    this.state = {
+      redCircleCount: 0
+    };
   }
 
   componentDidMount() {
@@ -74,16 +78,25 @@ class Canvas extends Component {
   };
 
   animate = () => {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    const context = this.canvas.getContext('2d');
+    context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.setState({ redCircleCount: 0 });
+
     for (let i = 0; i < this.circles.length; i++) {
       const circle = this.circles[i];
-      circle.draw();
+      circle.draw(context);
       circle.move();
       for (let j = i + 1; j < this.circles.length; j++) {
         const otherCircle = this.circles[j];
         circle.checkCollision(otherCircle);
       }
+      if (circle.color === 'red') {
+        this.setState(prevState => ({
+          redCircleCount: prevState.redCircleCount + 1
+        }));
+      }
     }
+
     if (this.isAnimating) {
       this.animationFrameId = requestAnimationFrame(this.animate);
     }
@@ -108,7 +121,7 @@ class Canvas extends Component {
       const y = Math.random() * this.canvas.height;
 
       // Create a new Circle instance with radius
-      const circle = new Circle(x, y, this.r, this.context);
+      const circle = new Circle(x, y, this.r, this.canvas.width, this.canvas.height);
       this.circles.push(circle);
     }
   };
@@ -116,10 +129,12 @@ class Canvas extends Component {
   resetCanvas = () => {
     this.setupCanvas();
     this.circles = [];
+    this.setState({ redCircleCount: 0 });
   };
 
   render() {
     const { width, height } = this.props;
+    const { redCircleCount } = this.state;
 
     return (
       <div className="simulator">
@@ -141,6 +156,9 @@ class Canvas extends Component {
           <button onClick={this.toggleAnimation}>
             {this.isAnimating ? 'Pause Animation' : 'Play Animation'}
           </button>
+        </div>
+        <div className="counter">
+          Red Circles: {redCircleCount}
         </div>
       </div>
     );
