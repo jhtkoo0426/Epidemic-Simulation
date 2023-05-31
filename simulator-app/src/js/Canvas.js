@@ -57,10 +57,11 @@ class Canvas extends Component {
     this.animationFrameId = null;
     this.isAnimating = true;
     this.state = {
-      redCircleCount: 0
+      redCircleCount: 0,
+      noOfPeople: 2,
     };
   }
-
+  
   componentDidMount() {
     this.setupCanvas();
     this.animate();
@@ -115,14 +116,28 @@ class Canvas extends Component {
     if (!this.context) {
       this.setupCanvas();
     }
-    // Generate 100 random circles
-    for (let i = 0; i < 100; i++) {
+    const { noOfPeople } = this.state;
+  
+    // Clear the existing circles
+    this.circles = [];
+  
+    // Generate circles based on the infection radius
+    for (let i = 0; i < noOfPeople; i++) {
       const x = Math.random() * this.canvas.width;
       const y = Math.random() * this.canvas.height;
-
-      // Create a new Circle instance with radius
+  
+      // Create a new Circle instance with updated infection radius
       const circle = new Circle(x, y, this.r, this.canvas.width, this.canvas.height);
       this.circles.push(circle);
+    }
+  };
+  
+
+  handleNoOfPeopleChange = (event) => {
+    const newRadius = parseInt(event.target.value);
+    console.log(newRadius);
+    if (!isNaN(newRadius)) {
+      this.setState({ noOfPeople: newRadius });
     }
   };
 
@@ -134,8 +149,8 @@ class Canvas extends Component {
 
   render() {
     const { width, height } = this.props;
-    const { redCircleCount } = this.state;
-
+    const { redCircleCount, noOfPeople } = this.state;
+  
     return (
       <div className="simulator">
         <canvas
@@ -151,6 +166,18 @@ class Canvas extends Component {
           }}
         />
         <div className="control-panel">
+          <div>
+            <label htmlFor="noOfPeopleSlider">Number of people:</label>
+            <input
+              id="noOfPeopleSlider"
+              type="range"
+              min="1"
+              max="1000"
+              value={noOfPeople}
+              onChange={this.handleNoOfPeopleChange}
+            />
+            <span>{noOfPeople}</span>
+          </div>
           <button onClick={this.drawCircle}>Draw Circles</button>
           <button onClick={this.resetCanvas}>Reset Canvas</button>
           <button onClick={this.toggleAnimation}>
@@ -162,7 +189,7 @@ class Canvas extends Component {
         </div>
       </div>
     );
-  }
+  }  
 }
 
 export default Canvas;

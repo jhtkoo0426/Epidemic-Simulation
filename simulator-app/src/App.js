@@ -1,6 +1,7 @@
 import React from 'react';
 import Canvas from './js/Canvas';
 import "../src/css/app.css";
+import 'bootstrap/dist/css/bootstrap.css';
 
 
 const App = () => {
