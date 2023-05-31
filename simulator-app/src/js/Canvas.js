@@ -20,9 +20,13 @@ class Circle {
     context.closePath();
   }
 
-  move() {
-    this.x += this.dx;
-    this.y += this.dy;
+  move(speed) {
+    const normalizedDx = this.dx / Math.sqrt(this.dx ** 2 + this.dy ** 2);
+    const normalizedDy = this.dy / Math.sqrt(this.dx ** 2 + this.dy ** 2);
+    const adjustedSpeed = speed; // Adjust the speed based on the parameter
+
+    this.x += normalizedDx * adjustedSpeed;
+    this.y += normalizedDy * adjustedSpeed;
 
     // Check collision with canvas boundaries
     if (this.x - this.r <= 0 || this.x + this.r >= this.canvasWidth) {
@@ -57,8 +61,11 @@ class Canvas extends Component {
     this.animationFrameId = null;
     this.isAnimating = true;
     this.state = {
-      redCircleCount: 0,
-      noOfPeople: 2,
+      noOfInfections: 0,
+      parameters: {
+        noOfPeople: 2,
+        speed: 0.5,
+      },
     };
   }
   
@@ -81,27 +88,30 @@ class Canvas extends Component {
   animate = () => {
     const context = this.canvas.getContext('2d');
     context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.setState({ redCircleCount: 0 });
-
+    this.setState({ noOfInfections: 0 });
+  
     for (let i = 0; i < this.circles.length; i++) {
       const circle = this.circles[i];
       circle.draw(context);
-      circle.move();
+      circle.move(this.state.parameters.speed); // Pass the speed parameter here
       for (let j = i + 1; j < this.circles.length; j++) {
         const otherCircle = this.circles[j];
         circle.checkCollision(otherCircle);
       }
+  
       if (circle.color === 'red') {
-        this.setState(prevState => ({
-          redCircleCount: prevState.redCircleCount + 1
+        // Update # of infections counter
+        this.setState((prevState) => ({
+          noOfInfections: prevState.noOfInfections + 1,
         }));
       }
     }
-
+  
     if (this.isAnimating) {
       this.animationFrameId = requestAnimationFrame(this.animate);
     }
   };
+  
 
   toggleAnimation = () => {
     this.isAnimating = !this.isAnimating;
@@ -116,28 +126,36 @@ class Canvas extends Component {
     if (!this.context) {
       this.setupCanvas();
     }
-    const { noOfPeople } = this.state;
-  
+    const { parameters } = this.state;
+
     // Clear the existing circles
     this.circles = [];
-  
-    // Generate circles based on the infection radius
-    for (let i = 0; i < noOfPeople; i++) {
+
+    // Generate circles based on the parameters
+    for (let i = 0; i < parameters.noOfPeople; i++) {
       const x = Math.random() * this.canvas.width;
       const y = Math.random() * this.canvas.height;
-  
-      // Create a new Circle instance with updated infection radius
-      const circle = new Circle(x, y, this.r, this.canvas.width, this.canvas.height);
+
+      // Create a new Circle instance with updated parameters
+      const circle = new Circle(x, y, this.r, this.canvas.width, this.canvas.height, parameters);
       this.circles.push(circle);
     }
   };
-  
 
-  handleNoOfPeopleChange = (event) => {
-    const newRadius = parseInt(event.target.value);
-    console.log(newRadius);
-    if (!isNaN(newRadius)) {
-      this.setState({ noOfPeople: newRadius });
+  handleParameterChange = (event) => {
+    const { name, value } = event.target;
+    this.setState((prevState) => ({
+      parameters: {
+        ...prevState.parameters,
+        [name]: value,
+      },
+    }));
+  };
+
+  handleSpeedChange = (event) => {
+    const newSpeed = parseFloat(event.target.value);
+    if (!isNaN(newSpeed)) {
+      this.setState({ speed: newSpeed });
     }
   };
 
@@ -149,8 +167,8 @@ class Canvas extends Component {
 
   render() {
     const { width, height } = this.props;
-    const { redCircleCount, noOfPeople } = this.state;
-  
+    const { noOfInfections: redCircleCount, parameters } = this.state;
+
     return (
       <div className="simulator">
         <canvas
@@ -173,10 +191,25 @@ class Canvas extends Component {
               type="range"
               min="1"
               max="1000"
-              value={noOfPeople}
-              onChange={this.handleNoOfPeopleChange}
+              name="noOfPeople"
+              value={parameters.noOfPeople}
+              onChange={this.handleParameterChange}
             />
-            <span>{noOfPeople}</span>
+            <span>{parameters.noOfPeople}</span>
+          </div>
+          <div>
+            <label htmlFor="speedSlider">Speed:</label>
+            <input
+              id="speedSlider"
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.5"
+              name="speed"
+              value={parameters.speed}
+              onChange={this.handleParameterChange}
+            />
+            <span>{parameters.speed}</span>
           </div>
           <button onClick={this.drawCircle}>Draw Circles</button>
           <button onClick={this.resetCanvas}>Reset Canvas</button>
@@ -184,12 +217,10 @@ class Canvas extends Component {
             {this.isAnimating ? 'Pause Animation' : 'Play Animation'}
           </button>
         </div>
-        <div className="counter">
-          Red Circles: {redCircleCount}
-        </div>
+        <div className="counter">Red Circles: {redCircleCount}</div>
       </div>
     );
-  }  
+  }
 }
 
 export default Canvas;
