@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
 
-class Circle {
-  constructor(x, y, r, canvasWidth, canvasHeight) {
+
+class Person {
+  constructor(x, y, r, canvasWidth, canvasHeight, infectionRadius) {
     this.x = x;
     this.y = y;
     this.r = r;
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
+    this.infectionRadius = infectionRadius; // New parameter for infection radius
     this.color = 'grey';
     this.dx = Math.random() * 2 - 1; // Random value between -1 and 1 for x-axis movement
     this.dy = Math.random() * 2 - 1; // Random value between -1 and 1 for y-axis movement
@@ -20,10 +22,10 @@ class Circle {
     context.closePath();
   }
 
-  move(speed) {
+  move(travellingSpeed) {
     const normalizedDx = this.dx / Math.sqrt(this.dx ** 2 + this.dy ** 2);
     const normalizedDy = this.dy / Math.sqrt(this.dx ** 2 + this.dy ** 2);
-    const adjustedSpeed = speed; // Adjust the speed based on the parameter
+    const adjustedSpeed = travellingSpeed; // Adjust the speed based on the parameter
 
     this.x += normalizedDx * adjustedSpeed;
     this.y += normalizedDy * adjustedSpeed;
@@ -41,14 +43,16 @@ class Circle {
     const dx = this.x - otherCircle.x;
     const dy = this.y - otherCircle.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-
-    // Check if circles collide
-    if (distance < this.r + otherCircle.r) {
+  
+    // Check if circles collide within the infection radius
+    if (distance < this.infectionRadius) {
       this.color = 'red';
       otherCircle.color = 'red';
     }
   }
 }
+
+
 
 class Canvas extends Component {
   constructor(props) {
@@ -64,9 +68,10 @@ class Canvas extends Component {
       noOfInfections: 0,
       parameters: {
         noOfPeople: 2,
-        speed: 0.5,
+        travellingSpeed: 0.5,
+        infectionRadius: 1,
       },
-    };
+    };    
   }
   
   componentDidMount() {
@@ -93,7 +98,8 @@ class Canvas extends Component {
     for (let i = 0; i < this.circles.length; i++) {
       const circle = this.circles[i];
       circle.draw(context);
-      circle.move(this.state.parameters.speed); // Pass the speed parameter here
+      circle.move(this.state.parameters.travellingSpeed); // Pass the speed parameter here
+  
       for (let j = i + 1; j < this.circles.length; j++) {
         const otherCircle = this.circles[j];
         circle.checkCollision(otherCircle);
@@ -111,7 +117,7 @@ class Canvas extends Component {
       this.animationFrameId = requestAnimationFrame(this.animate);
     }
   };
-  
+
 
   toggleAnimation = () => {
     this.isAnimating = !this.isAnimating;
@@ -127,35 +133,45 @@ class Canvas extends Component {
       this.setupCanvas();
     }
     const { parameters } = this.state;
-
+  
     // Clear the existing circles
     this.circles = [];
-
+  
     // Generate circles based on the parameters
     for (let i = 0; i < parameters.noOfPeople; i++) {
       const x = Math.random() * this.canvas.width;
       const y = Math.random() * this.canvas.height;
-
-      // Create a new Circle instance with updated parameters
-      const circle = new Circle(x, y, this.r, this.canvas.width, this.canvas.height, parameters);
+  
+      // Create a new Person instance with updated parameters
+      const circle = new Person(
+        x,
+        y,
+        this.r,
+        this.canvas.width,
+        this.canvas.height,
+        parameters.infectionRadius
+      );
       this.circles.push(circle);
     }
   };
+  
 
   handleParameterChange = (event) => {
     const { name, value } = event.target;
+  
     this.setState((prevState) => ({
       parameters: {
         ...prevState.parameters,
-        [name]: value,
+        [name]: name === 'infectionRadius' ? parseInt(value) : parseFloat(value),
       },
     }));
   };
+  
 
   handleSpeedChange = (event) => {
     const newSpeed = parseFloat(event.target.value);
     if (!isNaN(newSpeed)) {
-      this.setState({ speed: newSpeed });
+      this.setState({ travellingSpeed: newSpeed });
     }
   };
 
@@ -205,19 +221,32 @@ class Canvas extends Component {
               min="0.5"
               max="2"
               step="0.5"
-              name="speed"
-              value={parameters.speed}
+              name="travellingSpeed"
+              value={parameters.travellingSpeed}
               onChange={this.handleParameterChange}
             />
-            <span>{parameters.speed}</span>
+            <span>{parameters.travellingSpeed}</span>
           </div>
-          <button onClick={this.drawCircle}>Draw Circles</button>
-          <button onClick={this.resetCanvas}>Reset Canvas</button>
+          <div>
+            <label htmlFor="infectionRadiusSlider">Infection radius:</label>
+            <input
+              id="infectionRadiusSlider"
+              type="range"
+              min="1"
+              max="3"
+              name="infectionRadius"
+              value={parameters.infectionRadius}
+              onChange={this.handleParameterChange}
+            />
+            <span>{parameters.infectionRadius}</span>
+          </div>
+          <button onClick={this.drawCircle}>Populate grid</button>
+          <button onClick={this.resetCanvas}>Reset grid</button>
           <button onClick={this.toggleAnimation}>
-            {this.isAnimating ? 'Pause Animation' : 'Play Animation'}
+            {this.isAnimating ? 'Pause' : 'Play'}
           </button>
         </div>
-        <div className="counter">Red Circles: {redCircleCount}</div>
+        <div className="counter">Total infections: {redCircleCount}</div>
       </div>
     );
   }
