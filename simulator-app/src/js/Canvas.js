@@ -96,7 +96,6 @@ class Canvas extends Component {
   setupCanvas = () => {
     this.canvas = this.canvasRef.current;
     this.context = this.canvas.getContext('2d');
-    // Clear the canvas
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
   };
 
@@ -178,7 +177,7 @@ class Canvas extends Component {
   resetCanvas = () => {
     this.setupCanvas();
     this.circles = [];
-    this.setState({ redCircleCount: 0 });
+    this.setState({ redCircleCount: 0, noOfCollisions: 0 });
   };
 
   render() {
@@ -200,12 +199,26 @@ class Canvas extends Component {
               boxSizing: 'content-box',
             }}
           />
-          <div className="counter_infections">Total infections: {redCircleCount}</div>
-          <div className="counter_collisions">Total contacts: {this.state.noOfCollisions}</div>
+          <div className='counters'>
+            <div>
+              <div className="counter_infections">Total infections: {redCircleCount}</div>
+              <div className='legend infected'>
+                <div></div>
+                <p>Infected</p>
+              </div>
+            </div>
+            <div>
+              <div className="counter_collisions">Total contacts: {this.state.noOfCollisions}</div>
+              <div className='legend normal'>
+                <div></div>
+                <p>Normal</p>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="control-panel">
           <p>This simulator visualises the impact of various environmental factors and human 
-            behaviour on the spread of epidemics.</p>
+            behaviour on the spread of epidemics. Each circle represents a person.</p>
           <p>Use the following controls to see how the spread of epidemics is affected by various
             factors:</p>
           <div className='slider'>
@@ -225,7 +238,7 @@ class Canvas extends Component {
             </div>
           </div>
           <div className='slider'>
-            <label htmlFor="speedSlider">Speed:</label>
+            <label htmlFor="speedSlider">Movement speed:</label>
             <div>
               <input
                 id="speedSlider"

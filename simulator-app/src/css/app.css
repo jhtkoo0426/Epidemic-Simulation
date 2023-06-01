@@ -36,6 +36,36 @@
     margin: 5vh 0;
 }
 
+.counters > div {
+    display: flex;
+    justify-content: space-between;
+}
+
+.legend {
+    display: flex;
+    align-items: center;
+}
+
+.legend > div {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+}
+
+.legend > p {
+    width: 70px;
+    padding-left: 10px;
+    margin: 0;
+}
+
+.legend.infected > div {
+    background-color: red;
+}
+
+.legend.normal > div {
+    background-color: grey;
+}
+
 .control-panel > .slider {
     display: flex;
     justify-content: space-between;

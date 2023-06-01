@@ -10,15 +10,11 @@ const App = () => {
       <h2>Epidemic simulator</h2>
       <Canvas width={400} height={400}/>
       <div>
-        <p>Notes</p>
-        <ul>
-          <li>Number of people can be varied, but the size of the environment (square box) will remain unchanged</li>
-          <li>Speed controls movement speed of people (can be used to speed up simulation)</li>
-          <li>Infection radius is a multiplier of each person's radius</li>
-        </ul>
         <p>Model assumptions</p>
         <ul>
-          <li>A person gains immunity after infection (cannot be infected again)</li>
+          <li>People can move freely within the fixed square box only.</li>
+          <li>Each person follows a random walk throughout the simulation.</li>
+          <li>An infected person gains immunity after the first infection (cannot be infected again).</li>
         </ul>
       </div>
     </div>
