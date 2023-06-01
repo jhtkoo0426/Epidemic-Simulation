@@ -7,21 +7,59 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-:root {
-    
-}
-
 .App {
     width: 100%;
     height: 100vh;
-    background-color: aliceblue;
 }
 
-.simulator-canvas {
-    border: 1px solid black;
+@media only screen and (max-width: 1000px) {
+    .App {
+        padding: 5vh 5vw;
+    }
+}
+
+@media only screen and (min-width: 1001px) and (max-width: 1400px) {
+    .App {
+        padding: 5vh 10vw;
+    }
+}
+
+@media only screen and (min-width: 1401px) and (max-width: 1900px) {
+    .App {
+        padding: 5vh 20vw;
+    }
 }
 
 .simulator {
     display: flex;
-    flex-direction: column;
+    column-gap: 5%;
+    margin: 5vh 0;
+}
+
+.control-panel > .slider {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+}
+
+.control-panel > .slider > div {
+    display: flex;
+    align-items: center;
+}
+
+.control-panel > .slider > div > input {
+    position: relative;
+    left: -30px;
+}
+
+.control-panel > .slider > div > span {
+    display: block;
+    width: 30px;
+    position: relative;
+    left: 0px;
+}
+
+.control-panel > button {
+    padding: 5px 15px;
+    margin-right: 5px;
 }

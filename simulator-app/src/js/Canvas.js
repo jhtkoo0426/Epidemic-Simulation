@@ -52,8 +52,11 @@ class Person {
       if (a < this.infectionChance) {
         this.color = 'red';
         otherCircle.color = 'red';
+        return true;
       }
+      return false;
     }
+    return false;
   }
 }
 
@@ -71,8 +74,9 @@ class Canvas extends Component {
     this.isAnimating = true;
     this.state = {
       noOfInfections: 0,
+      noOfCollisions: 0,
       parameters: {
-        noOfPeople: 2,
+        noOfPeople: 50,
         travellingSpeed: 0.5,
         infectionRadius: 2,   // Infection radius should be at least as big as person radius
         infectionChance: 50,  // Base probability of infection (either will be or wont be infected)
@@ -108,7 +112,12 @@ class Canvas extends Component {
   
       for (let j = i + 1; j < this.circles.length; j++) {
         const otherCircle = this.circles[j];
-        circle.checkCollision(otherCircle);
+        const hasCollided = circle.checkCollision(otherCircle);
+        if (hasCollided) {
+          this.setState((prevState) => ({
+            noOfCollisions: prevState.noOfCollisions + 1,
+          }));
+        }
       }
   
       if (circle.color === 'red') {
@@ -178,79 +187,98 @@ class Canvas extends Component {
 
     return (
       <div className="simulator">
-        <canvas
-          className="simulator-canvas"
-          ref={this.canvasRef}
-          width={width}
-          height={height}
-          style={{
-            width: `${width}px`,
-            height: `${height}px`,
-            border: '1px solid black',
-            boxSizing: 'content-box',
-          }}
-        />
+        <div>
+          <canvas
+            className="simulator-canvas"
+            ref={this.canvasRef}
+            width={width}
+            height={height}
+            style={{
+              width: `${width}px`,
+              height: `${height}px`,
+              border: '1px solid black',
+              boxSizing: 'content-box',
+            }}
+          />
+          <div className="counter_infections">Total infections: {redCircleCount}</div>
+          <div className="counter_collisions">Total contacts: {this.state.noOfCollisions}</div>
+        </div>
         <div className="control-panel">
-          <div>
+          <p>This simulator visualises the impact of various environmental factors and human 
+            behaviour on the spread of epidemics.</p>
+          <p>Use the following controls to see how the spread of epidemics is affected by various
+            factors:</p>
+          <div className='slider'>
             <label htmlFor="noOfPeopleSlider">Number of people:</label>
-            <input
-              id="noOfPeopleSlider"
-              type="range"
-              min="1"
-              max="1000"
-              name="noOfPeople"
-              value={parameters.noOfPeople}
-              onChange={this.handleParameterChange}
-            />
-            <span>{parameters.noOfPeople}</span>
+            <div>
+              <input
+                id="noOfPeopleSlider"
+                type="range"
+                min="1"
+                max="1000"
+                name="noOfPeople"
+                value={parameters.noOfPeople}
+                onChange={this.handleParameterChange}
+                class="form-range"
+              />
+              <span>{parameters.noOfPeople}</span>
+            </div>
           </div>
-          <div>
+          <div className='slider'>
             <label htmlFor="speedSlider">Speed:</label>
-            <input
-              id="speedSlider"
-              type="range"
-              min="0.5"
-              max="2"
-              step="0.5"
-              name="travellingSpeed"
-              value={parameters.travellingSpeed}
-              onChange={this.handleParameterChange}
-            />
-            <span>{parameters.travellingSpeed}</span>
+            <div>
+              <input
+                id="speedSlider"
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.5"
+                name="travellingSpeed"
+                value={parameters.travellingSpeed}
+                onChange={this.handleParameterChange}
+                class="form-range"
+              />
+              <span>{parameters.travellingSpeed}</span>
+            </div>
           </div>
-          <div>
+          <div className='slider'>
             <label htmlFor="infectionRadiusSlider">Infection radius:</label>
-            <input
-              id="infectionRadiusSlider"
-              type="range"
-              min="2"
-              max="10"
-              name="infectionRadius"
-              value={parameters.infectionRadius}
-              onChange={this.handleParameterChange}
-            />
-            <span>{parameters.infectionRadius}</span>
+            <div>
+              <input
+                id="infectionRadiusSlider"
+                type="range"
+                min="2"
+                max="10"
+                name="infectionRadius"
+                value={parameters.infectionRadius}
+                onChange={this.handleParameterChange}
+                class="form-range"
+              />
+              <span>{parameters.infectionRadius}</span>
+            </div>
           </div>
-          <div>
+          <div className='slider'>
             <label htmlFor="infectionChanceSlider">Infection chance:</label>
-            <input
-              id="infectionChanceSlider"
-              type="range"
-              min="1"
-              max="100"
-              name="infectionChance"
-              value={parameters.infectionChance}
-              onChange={this.handleParameterChange}
-            />
-            <span>{parameters.infectionChance}</span>
+            <div>
+              <input
+                id="infectionChanceSlider"
+                type="range"
+                min="1"
+                max="100"
+                name="infectionChance"
+                value={parameters.infectionChance}
+                onChange={this.handleParameterChange}
+                class="form-range"
+              />
+              <span>{parameters.infectionChance}</span>
+            </div>
           </div>
-          <button onClick={this.drawCircle}>Populate grid</button>
-          <button onClick={this.resetCanvas}>Reset grid</button>
-          <button onClick={this.toggleAnimation}>
+          <button className="btn btn-primary" onClick={this.drawCircle}>Populate grid</button>
+          <button className="btn btn-primary" onClick={this.resetCanvas}>Reset grid</button>
+          <button className="btn btn-primary" onClick={this.toggleAnimation}>
             {this.isAnimating ? 'Pause' : 'Play'}
           </button>
         </div>
-        <div className="counter">Total infections: {redCircleCount}</div>
       </div>
     );
   }

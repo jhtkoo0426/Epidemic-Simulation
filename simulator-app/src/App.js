@@ -1,17 +1,14 @@
 import React from 'react';
 import Canvas from './js/Canvas';
-import "../src/css/app.css";
 import 'bootstrap/dist/css/bootstrap.css';
+import "../src/css/app.css";
 
 
 const App = () => {
   return (
     <div className="App">
-      <h1>Epidemic simulator</h1>
+      <h2>Epidemic simulator</h2>
       <Canvas width={400} height={400}/>
-      <div>
-        This simulator visualises the impact of various environmental factors and human behaviour on the rate of spread of epidemics.
-      </div>
       <div>
         <p>Notes</p>
         <ul>
