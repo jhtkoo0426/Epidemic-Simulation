@@ -1,7 +1,8 @@
 import React from 'react';
 import Canvas from './js/Canvas';
 import 'bootstrap/dist/css/bootstrap.css';
-import "../src/css/app.css";
+// import "../src/css/app.css";
+import "../src/css/app.scss";
 
 
 const App = () => {
