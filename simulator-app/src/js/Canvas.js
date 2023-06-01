@@ -2,16 +2,17 @@ import React, { Component } from 'react';
 
 
 class Person {
-  constructor(x, y, r, canvasWidth, canvasHeight, infectionRadius) {
+  constructor(x, y, r, canvasWidth, canvasHeight, infectionRadius, infectionChance) {
     this.x = x;
     this.y = y;
     this.r = r;
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
-    this.infectionRadius = infectionRadius; // New parameter for infection radius
+    this.infectionRadius = infectionRadius;
+    this.infectionChance = infectionChance;
     this.color = 'grey';
-    this.dx = Math.random() * 2 - 1; // Random value between -1 and 1 for x-axis movement
-    this.dy = Math.random() * 2 - 1; // Random value between -1 and 1 for y-axis movement
+    this.deltaX = Math.random() * 2 - 1; // Random value between -1 and 1 for x-axis movement
+    this.deltaY = Math.random() * 2 - 1; // Random value between -1 and 1 for y-axis movement
   }
 
   draw(context) {
@@ -23,8 +24,8 @@ class Person {
   }
 
   move(travellingSpeed) {
-    const normalizedDx = this.dx / Math.sqrt(this.dx ** 2 + this.dy ** 2);
-    const normalizedDy = this.dy / Math.sqrt(this.dx ** 2 + this.dy ** 2);
+    const normalizedDx = this.deltaX / Math.sqrt(this.deltaX ** 2 + this.deltaY ** 2);
+    const normalizedDy = this.deltaY / Math.sqrt(this.deltaX ** 2 + this.deltaY ** 2);
     const adjustedSpeed = travellingSpeed; // Adjust the speed based on the parameter
 
     this.x += normalizedDx * adjustedSpeed;
@@ -32,22 +33,26 @@ class Person {
 
     // Check collision with canvas boundaries
     if (this.x - this.r <= 0 || this.x + this.r >= this.canvasWidth) {
-      this.dx *= -1; // Reverse the direction on collision
+      this.deltaX *= -1; // Reverse the direction on collision
     }
     if (this.y - this.r <= 0 || this.y + this.r >= this.canvasHeight) {
-      this.dy *= -1; // Reverse the direction on collision
+      this.deltaY *= -1; // Reverse the direction on collision
     }
   }
 
   checkCollision(otherCircle) {
-    const dx = this.x - otherCircle.x;
-    const dy = this.y - otherCircle.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-  
+    const deltaX = this.x - otherCircle.x;
+    const deltaY = this.y - otherCircle.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
     // Check if circles collide within the infection radius
     if (distance < this.infectionRadius) {
-      this.color = 'red';
-      otherCircle.color = 'red';
+      // Generate random number to determine whether the person should be infected
+      const a = Math.random() * 100;
+      if (a < this.infectionChance) {
+        this.color = 'red';
+        otherCircle.color = 'red';
+      }
     }
   }
 }
@@ -69,7 +74,8 @@ class Canvas extends Component {
       parameters: {
         noOfPeople: 2,
         travellingSpeed: 0.5,
-        infectionRadius: 1,
+        infectionRadius: 2,   // Infection radius should be at least as big as person radius
+        infectionChance: 50,  // Base probability of infection (either will be or wont be infected)
       },
     };    
   }
@@ -133,9 +139,7 @@ class Canvas extends Component {
       this.setupCanvas();
     }
     const { parameters } = this.state;
-  
-    // Clear the existing circles
-    this.circles = [];
+    this.circles = [];    // Clear the existing circles
   
     // Generate circles based on the parameters
     for (let i = 0; i < parameters.noOfPeople; i++) {
@@ -144,12 +148,7 @@ class Canvas extends Component {
   
       // Create a new Person instance with updated parameters
       const circle = new Person(
-        x,
-        y,
-        this.r,
-        this.canvas.width,
-        this.canvas.height,
-        parameters.infectionRadius
+        x, y, this.r, this.canvas.width, this.canvas.height, parameters.infectionRadius, parameters.infectionChance,
       );
       this.circles.push(circle);
     }
@@ -165,14 +164,6 @@ class Canvas extends Component {
         [name]: name === 'infectionRadius' ? parseInt(value) : parseFloat(value),
       },
     }));
-  };
-  
-
-  handleSpeedChange = (event) => {
-    const newSpeed = parseFloat(event.target.value);
-    if (!isNaN(newSpeed)) {
-      this.setState({ travellingSpeed: newSpeed });
-    }
   };
 
   resetCanvas = () => {
@@ -232,13 +223,26 @@ class Canvas extends Component {
             <input
               id="infectionRadiusSlider"
               type="range"
-              min="1"
-              max="3"
+              min="2"
+              max="10"
               name="infectionRadius"
               value={parameters.infectionRadius}
               onChange={this.handleParameterChange}
             />
             <span>{parameters.infectionRadius}</span>
+          </div>
+          <div>
+            <label htmlFor="infectionChanceSlider">Infection chance:</label>
+            <input
+              id="infectionChanceSlider"
+              type="range"
+              min="1"
+              max="100"
+              name="infectionChance"
+              value={parameters.infectionChance}
+              onChange={this.handleParameterChange}
+            />
+            <span>{parameters.infectionChance}</span>
           </div>
           <button onClick={this.drawCircle}>Populate grid</button>
           <button onClick={this.resetCanvas}>Reset grid</button>
